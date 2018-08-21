@@ -1,1 +1,65 @@
-你好 郑江浩大帅哥
+移动端 dropload.js 使用 坑 http://www.jq22.com/jquery-info6960
+zepto + dot.js 中 render 时会出现多个下拉， 在render的div外 包裹一个div
+<body class="p-officialAcitve">
+<div id="m-message-remind"></div>
+<div id="scroll-box">
+  <div id="m-official-active-item"></div> 改div为原本的render div
+</div>
+</body>
+
+js中 初始化时调用一次pulls方法 每次触发后不管什么操作都需要调用resetload() 方法
+pulls:function() {
+    var that = this;
+    $('#scroll-box').dropload({
+        scrollArea : window,
+        domUp : {
+            domClass   : 'dropload-up',
+            domRefresh : '<div class="dropload-refresh">↓下拉刷新-自定义内容</div>',
+            domUpdate  : '<div class="dropload-update">↑释放更新-自定义内容</div>',
+            domLoad    : '<div class="dropload-load"><span class="loading"></span>加载中-自定义内容...</div>'
+        },
+        loadDownFn: function(me){
+          console.log('2');
+          if (pages.maxNo > pages.pageNo) {
+            pages.pageNo++
+          } else {
+            // 锁定
+            me.lock(); // 锁定后就不会在触发
+            // 无数据
+            me.noData();
+            me.resetload(); // 锁定完 要重新resetload()
+            return
+          }
+          YT.post('xxx', {
+            pageNo: pages.pageNo,
+            pageSize: pages.pageSize,
+            playType: '0'
+          }).then(res => {
+            if (res.data.length > 0) {
+              that.data.items = [...that.data.items, ...res.data];
+              that.render();
+              me.resetload();
+            } else {
+              // 锁定
+              me.lock();
+              // 无数据
+              me.noData();
+            }
+          }).catch((err) => {
+            console.log(err);
+            me.resetload();
+          });
+          // that.getData().then(o => {
+          //   me.resetload();
+          // })
+        },
+        loadUpFn: function(me) {
+          that.pageInit();
+          that.getData().then(o => {
+            me.resetload();
+            me.unlock() // 下拉刷新后 解除锁定，上拉加载才能重新有效
+          })
+        },
+        threshold: 200
+    });
+  },
