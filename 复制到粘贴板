@@ -1,0 +1,11 @@
+exportCopy(val) {
+    let el = $('.J_export-input');
+    el.attr('value', val);
+    el[0].select();
+    el[0].setSelectionRange(0, val.length);
+    if (document.execCommand('copy')) {
+      document.execCommand('copy');
+    }
+  }
+// input 或者 textarea 需要存在，readonly 
+// 要是没有复制成功 先把值写入到input中  再弹个确认窗确认 复制
